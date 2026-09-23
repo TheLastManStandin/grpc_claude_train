@@ -1,0 +1,50 @@
+syntax = "proto3";
+
+package courier.v1;
+
+option go_package = "github.com/moondoggy/courier/proto/courier/v1;courierv1";
+
+import "google/protobuf/timestamp.proto";
+
+message CreateOrderRequest {
+  string seller_address = 1;
+  string receiver_address = 2;
+  int32 weight_grams = 3;
+}
+
+enum OrderStatus {
+  ORDER_STATUS_UNSPECIFIED = 0;
+  ORDER_STATUS_CREATED = 1;
+  ORDER_STATUS_ASSIGNED = 2;
+  ORDER_STATUS_IN_TRANSIT = 3;
+  ORDER_STATUS_DELIVERED = 4;
+  ORDER_STATUS_CANCELED = 5;
+}
+
+message Order {
+  int32 id = 1;
+  OrderStatus status = 2;
+  string seller_address = 3;
+  string receiver_address = 4;
+  int32 weight_grams = 5;
+  google.protobuf.Timestamp created_at = 6;
+}
+
+message GetOrderRequest {
+  int32 id = 1;
+}
+
+message TrackOrderRequest{
+  int32 id = 1;
+}
+
+message OrderEvent{
+  OrderStatus new_status = 1;
+  google.protobuf.Timestamp created_at = 2;
+}
+
+service CourierService {
+  rpc CreateOrder(CreateOrderRequest) returns (Order);
+  rpc GetOrder(GetOrderRequest) returns (Order);
+  rpc TrackOrder(TrackOrderRequest) returns(stream OrderEvent);
+}
