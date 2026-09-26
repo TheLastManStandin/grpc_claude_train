@@ -41,6 +41,7 @@ message TrackOrderRequest{
 message OrderEvent{
   OrderStatus new_status = 1;
   google.protobuf.Timestamp created_at = 2;
+  int32 id = 3;
 }
 
 service CourierService {

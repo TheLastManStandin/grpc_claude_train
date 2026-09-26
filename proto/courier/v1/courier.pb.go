@@ -316,6 +316,7 @@ type OrderEvent struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	NewStatus     OrderStatus            `protobuf:"varint,1,opt,name=new_status,json=newStatus,proto3,enum=courier.v1.OrderStatus" json:"new_status,omitempty"`
 	CreatedAt     *timestamp.Timestamp   `protobuf:"bytes,2,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
+	Id            int32                  `protobuf:"varint,3,opt,name=id,proto3" json:"id,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -364,6 +365,13 @@ func (x *OrderEvent) GetCreatedAt() *timestamp.Timestamp {
 	return nil
 }
 
+func (x *OrderEvent) GetId() int32 {
+	if x != nil {
+		return x.Id
+	}
+	return 0
+}
+
 var File_proto_courier_v1_courier_proto protoreflect.FileDescriptor
 
 const file_proto_courier_v1_courier_proto_rawDesc = "" +
@@ -385,13 +393,14 @@ const file_proto_courier_v1_courier_proto_rawDesc = "" +
 	"\x0fGetOrderRequest\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\x05R\x02id\"#\n" +
 	"\x11TrackOrderRequest\x12\x0e\n" +
-	"\x02id\x18\x01 \x01(\x05R\x02id\"\x7f\n" +
+	"\x02id\x18\x01 \x01(\x05R\x02id\"\x8f\x01\n" +
 	"\n" +
 	"OrderEvent\x126\n" +
 	"\n" +
 	"new_status\x18\x01 \x01(\x0e2\x17.courier.v1.OrderStatusR\tnewStatus\x129\n" +
 	"\n" +
-	"created_at\x18\x02 \x01(\v2\x1a.google.protobuf.TimestampR\tcreatedAt*\xb4\x01\n" +
+	"created_at\x18\x02 \x01(\v2\x1a.google.protobuf.TimestampR\tcreatedAt\x12\x0e\n" +
+	"\x02id\x18\x03 \x01(\x05R\x02id*\xb4\x01\n" +
 	"\vOrderStatus\x12\x1c\n" +
 	"\x18ORDER_STATUS_UNSPECIFIED\x10\x00\x12\x18\n" +
 	"\x14ORDER_STATUS_CREATED\x10\x01\x12\x19\n" +

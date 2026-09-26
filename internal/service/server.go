@@ -2,9 +2,13 @@ package service
 
 import (
 	"context"
+	"fmt"
+	"math/rand"
 	"sync"
+	"time"
 
 	courierv1 "github.com/moondoggy/courier/proto/courier/v1"
+	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/timestamppb"
@@ -58,4 +62,58 @@ func (s *Server) GetOrder(ctx context.Context, request *courierv1.GetOrderReques
 	}
 
 	return order, nil
+}
+
+func (s *Server) TrackOrder(
+	req *courierv1.TrackOrderRequest,
+	stream grpc.ServerStreamingServer[courierv1.OrderEvent],
+) error {
+	s.mu.Lock()
+	_, ok := s.data[req.GetId()]
+	s.mu.Unlock()
+	if !ok {
+		return status.Error(codes.NotFound, "order not found")
+	}
+
+	ctx := stream.Context()
+
+	steps := []courierv1.OrderStatus{
+		courierv1.OrderStatus_ORDER_STATUS_CREATED,
+		courierv1.OrderStatus_ORDER_STATUS_ASSIGNED,
+		courierv1.OrderStatus_ORDER_STATUS_IN_TRANSIT,
+		courierv1.OrderStatus_ORDER_STATUS_DELIVERED,
+	}
+
+	ticker := time.NewTicker(time.Second * time.Duration(rand.Intn(5)))
+	defer ticker.Stop()
+	for _, next := range steps {
+		select {
+		case <-ctx.Done():
+			fmt.Printf("client %d request cancelled by context: %v\n",
+				req.GetId(), ctx.Err())
+			return status.FromContextError(ctx.Err()).Err()
+		case <-ticker.C:
+			s.mu.Lock()
+			order, ok := s.data[req.GetId()]
+			if ok {
+				order.Status = next
+			}
+			s.mu.Unlock()
+			if !ok {
+				return status.Error(codes.NotFound, "order not found, vanished")
+			}
+
+			event := &courierv1.OrderEvent{
+				NewStatus: next,
+				CreatedAt: timestamppb.Now(),
+				Id:        req.GetId(),
+			}
+
+			if err := stream.Send(event); err != nil {
+				return err
+			}
+		}
+	}
+
+	return nil
 }
